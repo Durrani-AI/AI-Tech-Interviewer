@@ -146,6 +146,7 @@ async def start_interview(
                 topic=request.topic,
                 programming_language=request.programming_language,
                 previous_questions=previous,
+                db=db,
             )
             question_text = (
                 f"{problem_payload['title']}\n\n"
@@ -418,6 +419,7 @@ async def submit_answer(
                     topic=session.topic or "General",
                     programming_language=session.programming_language,
                     previous_questions=previous,
+                    db=db,
                 )
                 next_q_text = (
                     f"{next_problem_payload['title']}\n\n"

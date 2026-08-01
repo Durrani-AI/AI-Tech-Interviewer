@@ -75,6 +75,7 @@ export interface Question {
   question_text: string;
   question_type: QuestionType;
   problem?: CodingProblemPayload | null;
+  responses?: UserResponse[] | null;
   asked_at: string;
 }
 

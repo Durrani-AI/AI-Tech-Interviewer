@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { CodeEditor, type SupportedLanguage } from "@/components/code-editor";
+import DifficultyBadge from "@/components/difficulty-badge";
 import ProtectedRoute from "@/components/protected-route";
 import BackButton from "@/components/back-button";
 
@@ -375,6 +376,20 @@ export default function InterviewSessionPage() {
     }
   }, [state.currentQuestion, sessionId, router]);
 
+  // Keyboard shortcut: Ctrl+Enter / Cmd+Enter to submit
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (!submission.submitting && (answerText.trim() || codeText.trim())) {
+          handleSubmit();
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleSubmit, submission.submitting, answerText, codeText]);
+
   // Loading state
   if (state.loading) {
     return (
@@ -429,9 +444,7 @@ export default function InterviewSessionPage() {
             Coding Practice
           </h1>
           {session && (
-            <Badge variant="warning">
-              {session.difficulty_level.charAt(0).toUpperCase() + session.difficulty_level.slice(1)}
-            </Badge>
+            <DifficultyBadge level={session.difficulty_level} />
           )}
           {session?.programming_language && (
             <Badge variant="default">{session.programming_language}</Badge>

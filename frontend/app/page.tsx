@@ -74,6 +74,39 @@ export default function Home() {
             Sign In
           </Link>
         </div>
+
+        {/* Feature Highlights Grid */}
+        <div className="animate-fade-in [animation-delay:700ms] opacity-0 [animation-fill-mode:forwards] grid sm:grid-cols-3 gap-4 pt-8 border-t border-surface-border/40 text-left">
+          <div className="glass p-4 space-y-2">
+            <div className="h-8 w-8 rounded-full bg-brand-500/10 text-brand-400 flex items-center justify-center font-bold text-sm">
+              AI
+            </div>
+            <h3 className="font-semibold text-foreground text-sm">Dynamic Questions</h3>
+            <p className="text-xs text-foreground-muted leading-relaxed">
+              LeetCode-style problems tailored to your target difficulty and topics.
+            </p>
+          </div>
+
+          <div className="glass p-4 space-y-2">
+            <div className="h-8 w-8 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-sm">
+              ✓
+            </div>
+            <h3 className="font-semibold text-foreground text-sm">Real-time Judge</h3>
+            <p className="text-xs text-foreground-muted leading-relaxed">
+              Instant test execution and AI evaluation of code correctness & style.
+            </p>
+          </div>
+
+          <div className="glass p-4 space-y-2">
+            <div className="h-8 w-8 rounded-full bg-warning/10 text-warning flex items-center justify-center font-bold text-sm">
+              ⚡
+            </div>
+            <h3 className="font-semibold text-foreground text-sm">Progress Analytics</h3>
+            <p className="text-xs text-foreground-muted leading-relaxed">
+              Detailed breakdown of scores, strengths, and areas for improvement.
+            </p>
+          </div>
+        </div>
       </div>
     </main>
   );

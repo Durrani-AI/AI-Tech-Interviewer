@@ -240,3 +240,42 @@ class EmailVerificationToken(Base):
 
     def __repr__(self) -> str:
         return f"<EmailVerificationToken id={self.id!r} used={self.used}>"
+
+
+class CachedProblem(Base):
+    """Validated coding problem cached for reuse.
+
+    Stores both curated seed problems and AI-generated problems that passed
+    quality validation. Over time, this table self-builds a large, tested
+    problem library.
+    """
+    __tablename__ = "cached_problems"
+    __table_args__ = (
+        Index("ix_cached_difficulty_source", "difficulty", "source"),
+        Index("ix_cached_problem_id", "problem_id", unique=True),
+    )
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    problem_id = Column(String(200), unique=True, nullable=False)
+    title = Column(String(300), nullable=False)
+    difficulty = Column(String(20), nullable=False)
+    topics = Column(JSON, nullable=True)
+    statement = Column(Text, nullable=False)
+    constraints = Column(JSON, nullable=True)
+    examples = Column(JSON, nullable=True)
+    function_name = Column(String(100), nullable=True)
+    params = Column(JSON, nullable=True)
+    function_signature = Column(String(500), nullable=True)
+    starter_code = Column(Text, nullable=True)
+    public_test_cases = Column(JSON, nullable=True)
+    hidden_test_cases = Column(JSON, nullable=True)
+    tags = Column(JSON, nullable=True)
+    expected_time_complexity = Column(String(100), nullable=True)
+    expected_space_complexity = Column(String(100), nullable=True)
+    source = Column(String(20), nullable=False, default="ai_validated")
+    times_served = Column(Integer, nullable=False, default=0)
+    quality_score = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<CachedProblem id={self.id!r} title={self.title!r} source={self.source!r}>"

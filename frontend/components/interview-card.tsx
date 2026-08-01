@@ -11,6 +11,7 @@ import type { InterviewSession } from "@/types";
 import { cn, formatDate, formatInterviewType, formatStatus, statusVariant } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import DifficultyBadge from "@/components/difficulty-badge";
 
 // Props
 
@@ -45,20 +46,6 @@ function computeDuration(start: string, end: string | null): string {
   if (hours > 0) return `${hours}h ${minutes}m`;
   if (minutes > 0) return `${minutes}m ${seconds}s`;
   return `${seconds}s`;
-}
-
-/** Map difficulty to a colour-coded class. */
-function difficultyColor(level: string): string {
-  switch (level) {
-    case "easy":
-      return "text-success";
-    case "medium":
-      return "text-warning";
-    case "hard":
-      return "text-danger";
-    default:
-      return "text-foreground-muted";
-  }
 }
 
 // Component
@@ -117,25 +104,7 @@ export function InterviewCard({
       {/* Meta row */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-foreground-muted">
         {/* Difficulty */}
-        <span className="flex items-center gap-1">
-          <svg
-            className="h-4 w-4 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
-          <span className={difficultyColor(difficulty_level)}>
-            {difficulty_level.charAt(0).toUpperCase() + difficulty_level.slice(1)}
-          </span>
-        </span>
+        <DifficultyBadge level={difficulty_level} />
 
         {/* Date */}
         <span className="flex items-center gap-1">

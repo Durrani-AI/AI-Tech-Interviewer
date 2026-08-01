@@ -345,6 +345,22 @@ async def _chat_ollama(
                 f"(ollama pull {settings.OLLAMA_MODEL})."
             ) from exc
         raise
+from app.services.problem_bank import async_pick_coding_problem, pick_coding_problem
+from app.services.problem_cache import cache_validated_problem
+
+
+def _validate_ai_problem_quality(problem: dict[str, Any]) -> float:
+    """Validate JSON problem quality and return a score between 0.0 and 1.0."""
+    score = 1.0
+    if not problem.get("title") or len(str(problem.get("title"))) < 3:
+        score -= 0.3
+    if not problem.get("statement") or len(str(problem.get("statement"))) < 20:
+        score -= 0.4
+    if not problem.get("public_test_cases") or len(problem.get("public_test_cases", [])) == 0:
+        score -= 0.3
+    if not problem.get("function_name"):
+        score -= 0.2
+    return max(0.0, score)
 
 
 # --- Public API ---
@@ -356,17 +372,19 @@ async def generate_coding_problem(
     topic: str,
     programming_language: str | None,
     previous_questions: list[str] | None = None,
+    db: Any = None,
 ) -> dict[str, Any]:
     """Generate a structured LeetCode-style coding problem.
 
-    Uses curated problems first. Falls back to strict JSON generation from the LLM.
+    Uses DB cache -> static curated bank -> LLM generation with validation & auto-caching.
     """
 
-    curated = pick_coding_problem(
+    curated = await async_pick_coding_problem(
         difficulty=difficulty,
         topic=topic,
         programming_language=programming_language,
         previous_questions=previous_questions,
+        db=db,
     )
     if curated:
         return curated
@@ -415,11 +433,20 @@ async def generate_coding_problem(
         num_predict=1024,
     )
     parsed = _extract_json(raw)
-    return _normalize_coding_problem(
+    normalized = _normalize_coding_problem(
         parsed,
         difficulty=difficulty,
         programming_language=programming_language,
     )
+
+    quality = _validate_ai_problem_quality(normalized)
+    if db is not None and quality >= 0.5:
+        try:
+            await cache_validated_problem(normalized, quality_score=quality, db=db)
+        except Exception as exc:
+            logger.warning("Auto-caching AI problem failed: %s", exc)
+
+    return normalized
 
 @with_retry()
 async def generate_interview_question(

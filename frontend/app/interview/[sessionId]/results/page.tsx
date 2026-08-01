@@ -31,9 +31,12 @@ import {
   scoreColor,
 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import ProtectedRoute from "@/components/protected-route";
 import BackButton from "@/components/back-button";
+import ScoreDonut from "@/components/score-donut";
+import DifficultyBadge from "@/components/difficulty-badge";
+import CodeBlock from "@/components/code-block";
 
 // Types
 
@@ -45,63 +48,6 @@ interface ResultsState {
   loading: boolean;
   error: string | null;
 }
-
-// Circular progress component
-
-interface CircularScoreProps {
-  score: number;
-  maxScore?: number;
-  size?: number;
-}
-
-function CircularScore({ score, maxScore = 10, size = 160 }: CircularScoreProps) {
-  const radius = (size - 16) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const pct = Math.min(score / maxScore, 1);
-  const offset = circumference * (1 - pct);
-
-  const color =
-    score >= 7 ? "stroke-success" : score >= 5 ? "stroke-warning" : "stroke-danger";
-
-  return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="rotate-[-90deg]">
-        {/* Background ring */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          className="text-surface-border/60"
-          strokeWidth={8}
-        />
-        {/* Progress ring */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          className={color}
-          strokeWidth={8}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 1s ease-out" }}
-        />
-      </svg>
-      {/* Score text centred */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={cn("text-4xl font-bold", scoreColor(score))}>
-          {score.toFixed(1)}
-        </span>
-        <span className="text-xs text-foreground-muted">out of {maxScore}</span>
-      </div>
-    </div>
-  );
-}
-
-// Simple horizontal bar chart for comparison
 
 interface BarChartProps {
   data: { label: string; value: number; highlight?: boolean }[];
@@ -280,9 +226,21 @@ export default function InterviewResultsPage() {
   if (state.loading) {
     return (
       <ProtectedRoute>
-        <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 flex flex-col items-center gap-4 pt-32">
-          <Spinner size="lg" />
-          <p className="text-foreground-muted text-sm">Loading results...</p>
+        <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 space-y-8 animate-fade-in">
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton variant="card" className="h-48 p-6" />
+          <div className="grid md:grid-cols-2 gap-6">
+            <Skeleton variant="card" className="h-64" />
+            <Skeleton variant="card" className="h-64" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton variant="card" className="h-40" />
+            <Skeleton variant="card" className="h-40" />
+          </div>
         </main>
       </ProtectedRoute>
     );
@@ -320,9 +278,10 @@ export default function InterviewResultsPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {formatInterviewType(session.interview_type)} Results
           </h1>
-          <p className="text-sm text-foreground-muted mt-1">
-            {formatDate(session.started_at)} - {session.difficulty_level.charAt(0).toUpperCase() + session.difficulty_level.slice(1)}
-          </p>
+          <div className="flex items-center gap-3 mt-1">
+            <span className="text-sm text-foreground-muted">{formatDate(session.started_at)}</span>
+            <DifficultyBadge level={session.difficulty_level} />
+          </div>
         </div>
 
         {/* Actions */}
@@ -338,7 +297,7 @@ export default function InterviewResultsPage() {
 
       {/* Score overview */}
       <section className="glass p-8 flex flex-col md:flex-row items-center gap-8">
-        <CircularScore score={overallScore} />
+        <ScoreDonut score={overallScore} size={140} strokeWidth={10} />
 
         <div className="flex-1 space-y-4 text-center md:text-left">
           <div>
@@ -477,6 +436,17 @@ export default function InterviewResultsPage() {
                         <p className="text-xs font-medium text-foreground-muted">Question</p>
                         <p className="text-sm text-foreground whitespace-pre-wrap">{qf.question_text}</p>
                       </div>
+
+                      {/* Code Response */}
+                      {session.questions?.[idx]?.responses?.[0]?.response_code && (
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-foreground-muted">Submitted Code</p>
+                          <CodeBlock
+                            code={session.questions[idx].responses[0].response_code!}
+                            language={session.programming_language || "python"}
+                          />
+                        </div>
+                      )}
 
                       {/* Score bar */}
                       {qScore !== null && (
